@@ -135,7 +135,8 @@ minetest.register_node(":default:sign_wall", {
                                               z = above.z + sign_info.delta.z}, "signs:text")
         text:setyaw(sign_info.yaw)
 
-        return ItemStack("")
+		itemstack:take_item()
+        return itemstack
     end,
     on_construct = function(pos)
         construct_sign(pos)
