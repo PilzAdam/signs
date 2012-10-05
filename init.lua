@@ -121,7 +121,8 @@ minetest.register_node(":default:sign_wall", {
         if wdir == 0 then
             --how would you add sign to ceiling?
             minetest.env:add_item(above, "default:sign_wall")
-            return ItemStack("")
+			itemstack:take_item()
+			return itemstack
         elseif wdir == 1 then
             minetest.env:add_node(above, {name = "signs:sign_yard", param2 = fdir})
             sign_info = signs_yard[fdir + 1]
