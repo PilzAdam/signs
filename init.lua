@@ -56,7 +56,9 @@ end
 local update_sign = function(pos, fields)
     local meta = minetest.env:get_meta(pos)
 	meta:set_string("infotext", "")
-	meta:set_string("text", fields.text)
+	if fields then
+		meta:set_string("text", fields.text)
+	end
     local text = meta:get_string("text")
     local objects = minetest.env:get_objects_inside_radius(pos, 0.5)
     for _, v in ipairs(objects) do
@@ -148,6 +150,9 @@ minetest.register_node(":default:sign_wall", {
     on_receive_fields = function(pos, formname, fields, sender)
         update_sign(pos, fields)
     end,
+	on_punch = function(pos, node, puncher)
+		update_sign(pos)
+	end,
 })
 
 minetest.register_node("signs:sign_yard", {
@@ -174,6 +179,9 @@ minetest.register_node("signs:sign_yard", {
     on_receive_fields = function(pos, formname, fields, sender)
         update_sign(pos, fields)
     end,
+	on_punch = function(pos, node, puncher)
+		update_sign(pos)
+	end,
 })
 
 minetest.register_entity("signs:text", {
