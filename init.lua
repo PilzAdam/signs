@@ -296,3 +296,7 @@ generate_line = function(s, ypos)
     end
     return texture
 end
+
+if minetest.setting_get("log_mods") then
+	minetest.log("action", "signs loaded")
+end
