@@ -32,6 +32,13 @@ local signs_yard = {
     {delta = {x = 0.05, y = 0, z = 0}, yaw = math.pi / 2},
 }
 
+local signs_post = {
+    {delta = {x = 0, y = 0, z = -0.226}, yaw = 0},
+    {delta = {x = -0.226, y = 0, z = 0}, yaw = math.pi / -2},
+    {delta = {x = 0, y = 0, z = 0.226}, yaw = math.pi},
+    {delta = {x = 0.226, y = 0, z = 0}, yaw = math.pi / 2},
+}
+
 local sign_groups = {choppy=2, dig_immediate=2}
 
 local construct_sign = function(pos)
@@ -70,6 +77,8 @@ local update_sign = function(pos, fields)
 		sign_info = signs_yard[minetest.env:get_node(pos).param2 + 1]
 	elseif minetest.env:get_node(pos).name == "default:sign_wall" then
 		sign_info = signs[minetest.env:get_node(pos).param2 + 1]
+	elseif minetest.env:get_node(pos).name == "signs:sign_post" then
+		sign_info = signs_post[minetest.env:get_node(pos).param2 + 1]
 	end
 	if sign_info == nil then
 		return
@@ -95,46 +104,59 @@ minetest.register_node(":default:sign_wall", {
     groups = sign_groups,
 
     on_place = function(itemstack, placer, pointed_thing)
-        local above = pointed_thing.above
-        local under = pointed_thing.under
-        local dir = {x = under.x - above.x,
-                     y = under.y - above.y,
-                     z = under.z - above.z}
+	local node=minetest.env:get_node(pointed_thing.under)
+	if minetest.registered_nodes[node.name].on_rightclick then
+		return minetest.registered_nodes[node.name].on_rightclick(pointed_thing.under, node, placer)
+		
+	else
+		local above = pointed_thing.above
+		local under = pointed_thing.under
+		local dir = {x = under.x - above.x,
+		             y = under.y - above.y,
+		             z = under.z - above.z}
 
-        local wdir = minetest.dir_to_wallmounted(dir)
+		local wdir = minetest.dir_to_wallmounted(dir)
 
-        local placer_pos = placer:getpos()
-        if placer_pos then
-            dir = {
-                x = above.x - placer_pos.x,
-                y = above.y - placer_pos.y,
-                z = above.z - placer_pos.z
-            }
-        end
+		local placer_pos = placer:getpos()
+		if placer_pos then
+		    dir = {
+		        x = above.x - placer_pos.x,
+		        y = above.y - placer_pos.y,
+		        z = above.z - placer_pos.z
+		    }
+		end
 
-        local fdir = minetest.dir_to_facedir(dir)
+		local fdir = minetest.dir_to_facedir(dir)
 
-        local sign_info
-        if wdir == 0 then
-            --how would you add sign to ceiling?
-            minetest.env:add_item(above, "default:sign_wall")
-			itemstack:take_item()
-			return itemstack
-        elseif wdir == 1 then
-            minetest.env:add_node(above, {name = "signs:sign_yard", param2 = fdir})
-            sign_info = signs_yard[fdir + 1]
-        else
-            minetest.env:add_node(above, {name = "default:sign_wall", param2 = fdir})
-            sign_info = signs[fdir + 1]
-        end
+		local sign_info
+		local pt_name = minetest.env:get_node(under).name
+		print(dump(pt_name))
 
-        local text = minetest.env:add_entity({x = above.x + sign_info.delta.x,
-                                              y = above.y + sign_info.delta.y,
-                                              z = above.z + sign_info.delta.z}, "signs:text")
-        text:setyaw(sign_info.yaw)
+		if pt_name == "default:fence_wood" then
+		    minetest.env:add_node(under, {name = "signs:sign_post", param2 = fdir})
+		    sign_info = signs_post[fdir + 1]
+
+		elseif wdir == 0 then
+		    --how would you add sign to ceiling?
+		    minetest.env:add_item(above, "default:sign_wall")
+				itemstack:take_item()
+				return itemstack
+		elseif wdir == 1 then
+		    minetest.env:add_node(above, {name = "signs:sign_yard", param2 = fdir})
+		    sign_info = signs_yard[fdir + 1]
+		else
+		    minetest.env:add_node(above, {name = "default:sign_wall", param2 = fdir})
+		    sign_info = signs[fdir + 1]
+		end
+
+		local text = minetest.env:add_entity({x = above.x + sign_info.delta.x,
+		                                      y = above.y + sign_info.delta.y,
+		                                      z = above.z + sign_info.delta.z}, "signs:text")
+		text:setyaw(sign_info.yaw)
 
 		itemstack:take_item()
-        return itemstack
+		return itemstack
+	end
     end,
     on_construct = function(pos)
         construct_sign(pos)
@@ -145,9 +167,9 @@ minetest.register_node(":default:sign_wall", {
     on_receive_fields = function(pos, formname, fields, sender)
         update_sign(pos, fields)
     end,
-	on_punch = function(pos, node, puncher)
-		update_sign(pos)
-	end,
+    on_punch = function(pos, node, puncher)
+	update_sign(pos)
+    end,
 })
 
 minetest.register_node("signs:sign_yard", {
@@ -177,6 +199,57 @@ minetest.register_node("signs:sign_yard", {
 		update_sign(pos)
 	end,
 })
+
+minetest.register_node("signs:sign_post", {
+    paramtype = "light",
+	sunlight_propagates = true,
+    paramtype2 = "facedir",
+    drawtype = "nodebox",
+    node_box = {
+	type = "fixed",
+	fixed = { 
+		{ -0.125, -0.5, -0.125, 0.125, 0.5, 0.125 },
+		{ -0.45, -0.15, -0.225, 0.45, 0.45, -0.125 },
+	}
+    },
+    selection_box = {
+	type = "fixed",
+	fixed = { 
+		{ -0.125, -0.5, -0.125, 0.125, 0.5, 0.125 },
+		{ -0.45, -0.15, -0.225, 0.45, 0.45, -0.125 },
+	}
+    },
+    tiles = {
+	"signs_post_top.png",
+	"signs_post_bottom.png",
+	"signs_post_side.png",
+	"signs_post_side.png",
+	"signs_post_back.png",
+	"signs_post_front.png",
+    },
+    groups = {choppy=2, dig_immediate=2},
+    drop = {
+	max_items = 2,
+	items = {
+		{ items = { "default:sign_wall" }},
+		{ items = { "default:fence_wood" }},
+	},
+    },
+
+    on_construct = function(pos)
+        construct_sign(pos)
+    end,
+    on_destruct = function(pos)
+        destruct_sign(pos)
+    end,
+    on_receive_fields = function(pos, formname, fields, sender)
+        update_sign(pos, fields)
+    end,
+	on_punch = function(pos, node, puncher)
+		update_sign(pos)
+	end,
+})
+
 
 minetest.register_entity("signs:text", {
     collisionbox = { 0, 0, 0, 0, 0, 0 },

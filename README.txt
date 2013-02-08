@@ -21,6 +21,11 @@ your text. You can use " | " to create a newline. Hitting enter or
 clicking proceed will save the text and add it to the sign.
 If the text of a sign disapears just rightclick it and hit enter again.
 
+In the case of a sign on a fencepost, just place a standard wooden fencepost, 
+then try to place a sign on it.  The fencepost will be replaced by one bearing 
+a sign, which drops one fencepost and one sign when dug back up.  Right click
+to edit the text as usual.
+
 License:
 Sourcecode: WTFPL (see below)
 Font: 04b-03 (http://04.jp.org/)
