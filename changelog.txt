@@ -8,3 +8,8 @@ Changes:
 - Make it stackable
 
 License of code: WTFPL
+
+Additional changes by VanessaE:
+
+Added the ability to place a sign directly onto a wooden fencepost (e.g. inside
+the same node space).
